@@ -8,11 +8,11 @@ import argparse
 #offset der auf alle coordinaten draufaddiert wird. vorallem rotation des tools muss definiert werden (x,y,z,Rx,Ry,Rz,e,f)
 offset = np.array([0,0,0,-180,0,-180,0,0])
 MAX_INSTRUCTIONS: int = int(9996) #10000 - NOP,END, start und end DOUT sowie const speed mode
-OUTPUT_GROUP: int = 1
+#OUTPUT_GROUP: int = 1
 #tool des roboters
-TOOL_N: int = 2
+#TOOL_N: int = 2
 #userframe des roboters
-USER_N: int = 1
+#USER_N: int = 1
 end_zhop: float = 10
 OUTPUT_FOLDER = Path("")#Path("C:/Users/Jonathan/Nextcloud/Documents/IDD_HiWi")
 Rx = 180
@@ -31,6 +31,9 @@ class Settings:
     max_rpm: float = 414
     standart_speed: float = 900 #mm/min
     use_volumetric_e: bool = False
+    user_n: int = 1
+    tool_n: int = 2
+    output_group: int = 1
         #to do
     #set tool
     #set userframe
@@ -99,7 +102,7 @@ def save_to_inform(path: Path, data: PrintData):
         n = data.coords.shape[0]
 
         #write Header
-        f.write(f'/JOB\n//NAME {path.stem}\n//POS\n///NPOS {n},0,0,0,0,0\n///TOOL {TOOL_N}\n///USER {USER_N}\n///POSTYPE USER\n///RECTAN\n///RCONF 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n')
+        f.write(f'/JOB\n//NAME {path.stem}\n//POS\n///NPOS {n},0,0,0,0,0\n///TOOL {data.settings.tool_n}\n///USER {data.settings.user_n}\n///POSTYPE USER\n///RECTAN\n///RCONF 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n')
         #write positions
         for i,coord in enumerate(data.coords):
             #get rotation in RZ um keine axenlimits zu erreichen
@@ -123,7 +126,7 @@ def save_to_inform(path: Path, data: PrintData):
 
                 speed = get_extrude_speed_vol(data.coords[i:i+1], data.settings)
                 if speed != last_speed:
-                    f.write(f' +DOUT OG#({OUTPUT_GROUP}) {speed} ADJT=0')
+                    f.write(f' +DOUT OG#({data.settings.output_group}) {speed} ADJT=0')
                 f.write('\n')
         else:
             for i in range(n):
@@ -133,9 +136,9 @@ def save_to_inform(path: Path, data: PrintData):
                     f.write('\n')
                     continue
                 elif (data.coords[i,7] != data.coords[i+1,7] and data.coords[i+1,6] > 0) or (data.coords[i,6] == 0 and data.coords[i+1,6] > 0) or i == 0:
-                    f.write(f' +DOUT OG#({OUTPUT_GROUP}) {get_extrude_speed(data.coords[i+1,7]/60, data.settings)} ADJT=0')
+                    f.write(f' +DOUT OG#({data.settings.output_group}) {get_extrude_speed(data.coords[i+1,7]/60, data.settings)} ADJT=0')
                 elif data.coords[i+1,6] <= 0:
-                    f.write(f' +DOUT OG#({OUTPUT_GROUP}) 0 ADJT=0')
+                    f.write(f' +DOUT OG#({data.settings.output_group}) 0 ADJT=0')
                 f.write('\n')
         f.write('END\n')
 
@@ -155,10 +158,10 @@ def save_prog(path: Path, coords: np.ndarray, settings: Settings) -> None:
     with open(path, "w") as f:
         f.write(f'/JOB\n//NAME {path.stem}\n')
         f.write(f'//INST\n///DATE {datetime.datetime.now().strftime(("%Y/%m/%d %H:%M"))}\n///ATTR SC,RW,RJ\n///GROUP1 RB1\nNOP\n')
-        f.write(f'DOUT OG#({OUTPUT_GROUP}) 0\n')
+        f.write(f'DOUT OG#({settings.output_group}) 0\n')
         for i in range(n):
             f.write(f'CALL JOB:{(path.stem+"_"+str(i))}\n')
-        f.write(f'DOUT OG#({OUTPUT_GROUP}) 255\n')
+        f.write(f'DOUT OG#({settings.output_group}) 255\n')
         f.write('END\n')
 
 def parse_gcode(path: Path) -> PrintData:
@@ -234,6 +237,12 @@ def parse_gcode(path: Path) -> PrintData:
                         settings.use_volumetric_e = False
                     else:
                         settings.use_volumetric_e = True
+                case "user_n":
+                    settings.user_n = int(print_param_val[0].strip())
+                case "tool_n":
+                    settings.tool_n = int(print_param_val[0].strip())
+                case "output_group":
+                    settings.output_group = int(print_param_val[0].strip())
                 case "use_relative_e_distances":
                     if int(print_param_val[0].strip()) == 0:
                         print("enable relative e distance")
