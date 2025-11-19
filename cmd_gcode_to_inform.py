@@ -96,15 +96,15 @@ def get_comandline_args() -> argparse.Namespace:
     parser.add_argument("-o", "--output", type=Path, help="output folder path", default=OUTPUT_FOLDER)
     return parser.parse_args()
 
-def save_to_inform(path: Path, data: PrintData):
+def save_to_inform(path: Path, coords: np.ndarray, settings: Settings):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        n = data.coords.shape[0]
+        n = coords.shape[0]
 
         #write Header
-        f.write(f'/JOB\n//NAME {path.stem}\n//POS\n///NPOS {n},0,0,0,0,0\n///TOOL {data.settings.tool_n}\n///USER {data.settings.user_n}\n///POSTYPE USER\n///RECTAN\n///RCONF 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n')
+        f.write(f'/JOB\n//NAME {path.stem}\n//POS\n///NPOS {n},0,0,0,0,0\n///TOOL {settings.tool_n}\n///USER {settings.user_n}\n///POSTYPE USER\n///RECTAN\n///RCONF 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n')
         #write positions
-        for i,coord in enumerate(data.coords):
+        for i,coord in enumerate(coords):
             #get rotation in RZ um keine axenlimits zu erreichen
             coord[5] = get_Rz(coord[0],coord[1],coord[3])
             #override orientation
@@ -114,31 +114,31 @@ def save_to_inform(path: Path, data: PrintData):
         f.write(f'//INST\n///DATE {datetime.datetime.now().strftime(("%Y/%m/%d %H:%M"))}\n///ATTR SC,RW,RJ\n///GROUP1 RB1\nNOP\n')
         f.write(f'HPVELON\n') #constant speed
 
-        if data.settings.use_volumetric_e:
+        if settings.use_volumetric_e:
             last_speed = -1
-            for i in range(len(data.coords)):
-                f.write(f'MOVL C{i:05} V={min(data.coords[i,7]/60, data.settings.max_speed):.1f}') 
+            for i in range(len(coords)):
+                f.write(f'MOVL C{i:05} V={min(coords[i,7]/60, settings.max_speed):.1f}') 
                 
 
                 if i == n-1:
                     f.write('\n')
                     continue
 
-                speed = get_extrude_speed_vol(data.coords[i:i+1], data.settings)
+                speed = get_extrude_speed_vol(coords[i:i+1,:], settings)
                 if speed != last_speed:
-                    f.write(f' +DOUT OG#({data.settings.output_group}) {speed} ADJT=0')
+                    f.write(f' +DOUT OG#({settings.output_group}) {speed} ADJT=0')
                 f.write('\n')
         else:
             for i in range(n):
-                f.write(f'MOVL C{i:05} V={min(data.coords[i,7]/60, data.settings.max_speed):.1f}') 
+                f.write(f'MOVL C{i:05} V={min(coords[i,7]/60, settings.max_speed):.1f}') 
                 #überprüfen
-                if (i == (len(data.coords)-1)) or (data.coords[i+1,6] <= 0 and data.coords[i,6] <= 0):
+                if (i == (len(coords)-1)) or (coords[i+1,6] <= 0 and coords[i,6] <= 0):
                     f.write('\n')
                     continue
-                elif (data.coords[i,7] != data.coords[i+1,7] and data.coords[i+1,6] > 0) or (data.coords[i,6] == 0 and data.coords[i+1,6] > 0) or i == 0:
-                    f.write(f' +DOUT OG#({data.settings.output_group}) {get_extrude_speed(data.coords[i+1,7]/60, data.settings)} ADJT=0')
-                elif data.coords[i+1,6] <= 0:
-                    f.write(f' +DOUT OG#({data.settings.output_group}) 0 ADJT=0')
+                elif (coords[i,7] != coords[i+1,7] and coords[i+1,6] > 0) or (coords[i,6] == 0 and coords[i+1,6] > 0) or i == 0:
+                    f.write(f' +DOUT OG#({settings.output_group}) {get_extrude_speed(coords[i+1,7]/60, settings)} ADJT=0')
+                elif coords[i+1,6] <= 0:
+                    f.write(f' +DOUT OG#({settings.output_group}) 0 ADJT=0')
                 f.write('\n')
         f.write('END\n')
 
@@ -275,11 +275,15 @@ def main() -> None:
     args = get_comandline_args()
     INPUT_PATH = Path(args.file_path)
     data = parse_gcode(INPUT_PATH) 
-    path = args.output / (data.settings.file_name.upper() + ".JBI") # shift to uppercase
-    save_prog(path, data.coords + offset, data.settings)
     if args.verbose:
         print(data.settings)
-        input("Press enter")
+    path = args.output / (data.settings.file_name.upper() + ".JBI") # shift to uppercase
+    save_prog(path, data.coords + offset, data.settings)
+    #if args.verbose:
+    #    print(data.settings)
+    #    input("Press enter")
+    print("file written to ", {args.output})
+    input("Press enter")
 
 if __name__ == "__main__":
     main()
