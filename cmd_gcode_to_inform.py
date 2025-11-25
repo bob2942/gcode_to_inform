@@ -72,7 +72,6 @@ def get_extrude_speed(feedrate: float, settings: Settings) -> int:
     return int(max(0,min(speed,254)))
 
 def get_extrude_speed_vol(coords: np.ndarray, settings: Settings) -> int:
-
     #distanz berechnen
     dist = np.sqrt( (coords[0,0]-coords[1,0])**2 + (coords[0,1]-coords[1,1])**2 + (coords[0,2]-coords[1,2])**2)
     
@@ -96,7 +95,7 @@ def get_comandline_args() -> argparse.Namespace:
     parser.add_argument("-o", "--output", type=Path, help="output folder path", default=OUTPUT_FOLDER)
     return parser.parse_args()
 
-def save_to_inform(path: Path, coords: np.ndarray, settings: Settings):
+def save_to_inform(path: Path, coords: np.ndarray, settings: Settings, last_pos : np.ndarray = np.array([0,0,0,Rx,Ry,get_Rz(0,0,0)])):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
         n = coords.shape[0]
@@ -114,24 +113,32 @@ def save_to_inform(path: Path, coords: np.ndarray, settings: Settings):
         f.write(f'//INST\n///DATE {datetime.datetime.now().strftime(("%Y/%m/%d %H:%M"))}\n///ATTR SC,RW,RJ\n///GROUP1 RB1\nNOP\n')
         f.write(f'HPVELON\n') #constant speed
 
+        #volumetric_e funktioniert noch nicht
         if settings.use_volumetric_e:
             last_speed = -1
-            for i in range(len(coords)):
+            if coords[0,7] != 0:
+                speed = get_extrude_speed_vol(np.array([last_pos, coords[0,:]]), settings)
+                f.write(f'DOUT OG#({settings.output_group}) {speed}\n')
+                f.write(f'MOVL C{i:05} V={min(coords[0,7]/60, settings.max_speed):.1f}\n')
+                last_speed = speed
+  
+            for i in range(1,len(coords)):
+
                 f.write(f'MOVL C{i:05} V={min(coords[i,7]/60, settings.max_speed):.1f}') 
                 
-
                 if i == n-1:
                     f.write('\n')
                     continue
-
-                speed = get_extrude_speed_vol(coords[i:i+1,:], settings)
+                
+                speed = get_extrude_speed_vol(coords[i:i+2], settings)
                 if speed != last_speed:
                     f.write(f' +DOUT OG#({settings.output_group}) {speed} ADJT=0')
+                    last_speed = speed
                 f.write('\n')
         else:
             for i in range(n):
                 f.write(f'MOVL C{i:05} V={min(coords[i,7]/60, settings.max_speed):.1f}') 
-                #überprüfen
+                #überprüfen und kann bestimmt schöner gemacht werden
                 if (i == (len(coords)-1)) or (coords[i+1,6] <= 0 and coords[i,6] <= 0):
                     f.write('\n')
                     continue
@@ -149,10 +156,12 @@ def save_prog(path: Path, coords: np.ndarray, settings: Settings) -> None:
     #pfad zum abspeichern
     path = path.parent / path.stem / path.name
     # abspeichern der Inform dateien mit bewegungen
+    last_pos = offset
     for i in range(n):
-        save_to_inform(path.parent / (path.stem+"_"+str(i)+path.suffix), coords[i*MAX_INSTRUCTIONS:(i+1)*MAX_INSTRUCTIONS], settings)
+        save_to_inform(path.parent / (path.stem+"_"+str(i)+path.suffix), coords[i*MAX_INSTRUCTIONS:(i+1)*MAX_INSTRUCTIONS], settings, last_pos)
+        last_pos = coords[(i+1)*MAX_INSTRUCTIONS-1]
     if r > 0:
-        save_to_inform(path.parent / (path.stem+"_"+str(n)+path.suffix), coords[n*MAX_INSTRUCTIONS:(n+1)*MAX_INSTRUCTIONS], settings)
+        save_to_inform(path.parent / (path.stem+"_"+str(n)+path.suffix), coords[n*MAX_INSTRUCTIONS:(n+1)*MAX_INSTRUCTIONS], settings, last_pos)
         n += 1
     # erstellen der INFORM datei zum aufruf der anderen inform dateien
     with open(path, "w") as f:
