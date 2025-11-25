@@ -118,11 +118,12 @@ def save_to_inform(path: Path, coords: np.ndarray, settings: Settings, last_pos 
             last_speed = -1
 
             #set extruder for first move
-            if coords[0,7] != 0:
+            if coords[0,6] > 0:
                 speed = get_extrude_speed_vol(np.array([last_pos, coords[0,:]]), settings)
                 f.write(f'DOUT OG#({settings.output_group}) {speed}\n')
                 last_speed = speed
-  
+            else:
+                f.write(f'DOUT OG#({settings.output_group}) 0\n')
             for i in range(len(coords)):
                 f.write(f'MOVL C{i:05} V={min(coords[i,7]/60, settings.max_speed):.1f}') 
                 if i == n-1:
