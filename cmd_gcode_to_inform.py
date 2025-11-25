@@ -129,6 +129,11 @@ def save_to_inform(path: Path, coords: np.ndarray, settings: Settings):
                     f.write(f' +DOUT OG#({settings.output_group}) {speed} ADJT=0')
                 f.write('\n')
         else:
+            #set speed for first move
+            if coords[0,6] != 0:
+                f.write(f'DOUT OG#({settings.output_group}) {get_extrude_speed(coords[0,7]/60, settings)}\n')
+            else:
+                f.write(f'DOUT OG#({settings.output_group}) 0 \n')
             for i in range(n):
                 f.write(f'MOVL C{i:05} V={min(coords[i,7]/60, settings.max_speed):.1f}') 
                 #überprüfen
