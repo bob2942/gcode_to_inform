@@ -130,7 +130,7 @@ def save_to_inform(path: Path, coords: np.ndarray, settings: Settings):
                 f.write('\n')
         else:
             #set speed for first move
-            if coords[0,6] != 0:
+            if coords[0,6] > 0:
                 f.write(f'DOUT OG#({settings.output_group}) {get_extrude_speed(coords[0,7]/60, settings)}\n')
             else:
                 f.write(f'DOUT OG#({settings.output_group}) 0 \n')
