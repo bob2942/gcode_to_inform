@@ -1,10 +1,25 @@
 # how to use
-'''
-\<path to python instalatio\n> <path to cmd_gcode_to_inform> <Gcode Path> <optional arguments>
-'''
+```
+\<path to python instalation\> \<path to cmd_gcode_to_inform\> \<Gcode Path\> \<optional arguments\>
+```
 
 
 ## avalible commands
+show help
+```
+-h
+```
+
+```
+-v
+```
+
+```
+-o
+```
+
+
+
 
 # avalible gcode parameters
 
