@@ -1,6 +1,6 @@
 # how to use
 '''
-<path to python instalation> <path to cmd_gcode_to_inform> <Gcode Path> <optional arguments>
+\<path to python instalatio\n> <path to cmd_gcode_to_inform> <Gcode Path> <optional arguments>
 '''
 
 
