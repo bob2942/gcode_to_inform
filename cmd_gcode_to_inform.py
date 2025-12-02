@@ -39,6 +39,7 @@ class PrintData:
     settings: Settings
     coords: np.ndarray
 
+#change Rz rotation based on position change this funktion how you needed
 def get_Rz(x,y,z) -> float:
     x_max = 900
     x_min = 10
@@ -101,11 +102,11 @@ def save_to_inform(path: Path, coords: np.ndarray, settings: Settings, last_pos 
         f.write(f'/JOB\n//NAME {path.stem}\n//POS\n///NPOS {n},0,0,0,0,0\n///TOOL {settings.tool_n}\n///USER {settings.user_n}\n///POSTYPE USER\n///RECTAN\n///RCONF 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n')
         #write positions
         for i,coord in enumerate(coords):
-            #get rotation in RZ um keine axenlimits zu erreichen
-            #coord[5] = settings.rz#get_Rz(coord[0],coord[1],coord[3])
-            #override orientation
-            #coord[4] = settings.ry
-            #coord[3] = settings.rx
+            # override Rz rotation based on position maby nedet to reach the hole printvolume
+            # uncomend if needet
+            #coord[5] =get_Rz(coord[0],coord[1],coord[3])
+
+
             f.write(f'C{i:05}={coord[0]:.3f},{coord[1]:.3f},{coord[2]:.3f},{coord[3]:.4f},{coord[4]:.4f},{coord[5]:.4f}\n')
         f.write(f'//INST\n///DATE {datetime.datetime.now().strftime(("%Y/%m/%d %H:%M"))}\n///ATTR SC,RW,RJ\n///GROUP1 RB1\nNOP\n')
         f.write(f'HPVELON\n') #constant speed
