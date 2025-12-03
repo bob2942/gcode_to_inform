@@ -292,6 +292,10 @@ def parse_gcode(path: Path, standart_speed: float = 900) -> PrintData:
                     settings.offset_z  = float(print_param_val[0].strip())
                 case "end_zhop":
                     end_zhop = float(print_param_val[0].strip())
+                case "max_rpm":
+                    settings.max_rpm  = float(print_param_val[0].strip())
+                case "max_speed":
+                    settings.max_speed  = float(print_param_val[0].strip())
                 case "use_relative_e_distances":
                     if int(print_param_val[0].strip()) == 0:
                         print("enable relative e distance")
