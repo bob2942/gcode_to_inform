@@ -95,4 +95,15 @@ extrusionmultiplyer
 ```
 sets E-Axis to volumetric.
 
+``` 
+; use_relative_e_distances = <0/1>
+```
+if disabled (0) script will therminate and suggest user to turn on this slicing setting. This sript only works with relative E distance.
+
+```
+; arc_fitting = <enabled/disabled>
+```
+arc moves are not suportet only linear moves. if enabled sript will terminate with suggestion to turn off this slicing feature.
+
+
 # arduino code
