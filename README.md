@@ -91,7 +91,7 @@ sets the extrusionwidth in mm used. This parameter is automaticly set by the sli
 extrusionmultiplyer
 
 ```  
-use_volumetric_e = <0/1>
+; use_volumetric_e = <0/1>
 ```
 sets E-Axis to volumetric.
 
