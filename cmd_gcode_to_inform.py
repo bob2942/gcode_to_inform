@@ -5,12 +5,7 @@ import sys
 from dataclasses  import dataclass
 import argparse
 
-MAX_INSTRUCTIONS: int = int(9996) #10000 - NOP,END, start und end DOUT sowie const speed mode
-#OUTPUT_GROUP: int = 1
-#tool des roboters
-#TOOL_N: int = 2
-#userframe des roboters
-#USER_N: int = 1
+MAX_INSTRUCTIONS: int = int(9996) #10000 - NOP,END, start DOUT sowie const speed mode
 OUTPUT_FOLDER = Path("")#Path("C:/Users/Jonathan/Nextcloud/Documents/IDD_HiWi")
 
 @dataclass
@@ -153,12 +148,12 @@ def save_to_inform(path: Path, coords: np.ndarray, settings: Settings, last_pos 
                 f.write(f'MOVL C{i:05} V={min(coords[i,7]/60, settings.max_speed):.1f}') 
                 #überprüfen und kann bestimmt schöner gemacht werden
                 # set new extruder speed if needed
-                if (i == (len(coords)-1)) or (coords[i+1,6] <= 0 and coords[i,6] <= 0):
+                if (i == (len(coords)-1)) or (coords[i+1,6] <= 0 and coords[i,6] <= 0):  #last move or current and next move dont extrude
                     f.write('\n')
                     continue
-                elif (coords[i,7] != coords[i+1,7] and coords[i+1,6] > 0) or (coords[i,6] <= 0 and coords[i+1,6] > 0) or i == 0:
+                elif (coords[i,7] != coords[i+1,7] and coords[i+1,6] > 0) or (coords[i,6] <= 0 and coords[i+1,6] > 0) or i == 0: # feedrate changes or next move starts to extrude
                     f.write(f' +DOUT OG#({settings.output_group}) {get_extrude_speed(coords[i+1,7]/60, settings)} ADJT=0')
-                elif coords[i+1,6] <= 0:
+                elif coords[i+1,6] <= 0: # nextmove stops extruding
                     f.write(f' +DOUT OG#({settings.output_group}) 0 ADJT=0')
                 f.write('\n')
         f.write('END\n')
@@ -218,24 +213,26 @@ def parse_gcode(path: Path, standart_speed: float = 900) -> PrintData:
         # seperate GCode command from commets
         [gcode_line, *comment] = line.split(";", maxsplit=1)
 
-        # split GCode commends from parameters
+        # split GCode commends from parameters first part musst be the command
         if len(gcode_line) > 1:
             [g_cmd, *param_strs] = gcode_line.split()
         else:
             g_cmd = ""
             param_strs = []
 
-        #try to read in Parameters an create a dictonary   
+        #try to read in Parameters an create a dictonary if it fails create empty dictonary
         try:
             params = {e[0]: float(e[1:]) for e in param_strs}
         except:
             params = {}
 
+
+        # add absolut and relativ moves
         # move command
         if g_cmd in ["G0", "G1"]:
             for col_id, col_name in enumerate(column_names):
 
-                # set to previous value if no new value ist given exept for the E axis
+                # set to previous value if no new value is given exept for the E axis
                 if col_name == "E":
                         current_row[col_id] = params.get(col_name, 0)
                 else:
@@ -325,7 +322,7 @@ def main() -> None:
     #if args.verbose:
     #    print(data.settings)
     #    input("Press enter")
-    print("file written to ", {path})
+    print("files written to ", {path})
     input("Press enter")
 
 if __name__ == "__main__":
