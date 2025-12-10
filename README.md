@@ -66,12 +66,12 @@ sets tool number used
 sets outputgroup used for comunication with the ardino
 
 ```
-    offset_x = <value>
-    offset_y = <value>
-    offset_z = <value>
-    offset_Rx = <value>
-    offset_Ry = <value>
-    offset_Rz = <value>
+; offset_x = <value>
+; offset_y = <value>
+; offset_z = <value>
+; offset_Rx = <value>
+; offset_Ry = <value>
+; offset_Rz = <value>
 ```
 adds an offset to all positions for the specified axis.
 
@@ -88,6 +88,7 @@ sets the extrusionwidth in mm used. This parameter is automaticly set by the sli
 ```
 ; flow = <value>
 ```
+extrusionmultiplyer
 
 ```  
 use_volumetric_e = <0/1>
