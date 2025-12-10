@@ -15,10 +15,11 @@
 
 // stepper and heater power relay on pin D6
 
-
+// define stepper direction
 //#define FORWARD
 #define BACKWARD
 
+//variables for storing speed and flow. volatile because of use in interupt routine
 volatile uint8_t speed = 0;
 volatile float flow = 1.0; // extrusionsmultiplikator
 
@@ -27,9 +28,9 @@ FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *stepper = NULL;
 
 inline void set_speed(){
-  //lese pins aus und setze sie als wert mit reinfolge D4|D3|A5|A4|A3|A2|A1|A0
+  //Read out pins and store in variable with the positions D4|D3|A5|A4|A3|A2|A1|A0
   speed = (((PIND&((1<<PIND3)|(1<<PIND4)))<<3)|(PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)|(1<<PINC3)|(1<<PINC4)|(1<<PINC5)))); // read A0-A5
-  speed ^= 0xFF;
+  speed ^= 0xFF; // invert values because octocupler inverts the signal
   speed = (int)speed*flow; // scale speed with flow
   speed = min(max(speed,0), 255); // limit speed to 0-255
   if(speed == 0){
@@ -49,6 +50,8 @@ inline void set_speed(){
   }
 }
 
+
+// define pinchange interupt routines
 ISR (PCINT2_vect){ // PCINT2_vect: interrupt vector for PORTD
   set_speed();
   //PCIFR |= (1<<PCIF1); // clear interuptflag for 
@@ -59,20 +62,21 @@ ISR (PCINT1_vect){ // PCINT1_vect: interrupt vector for PORTC
 }
 
 void setup() {
-
+  // initialise serial comunication
   Serial.begin(115200);
 
   DDRC &= ~((1<<DDC0)|(1<<DDC1)|(1<<DDC2)|(1<<DDC3)|(1<<DDC4)|(1<<DDC5)); //set pin A0-A5 als Input
   DDRD |= (1<<DDD6); //set pin D6 als Output
   DDRD &= ~((1<<DDD3)|(1<<DDD4)); //set pin D3 und D4 als Input
 
-  //enable pinchange interupts
+  //enable pinchange interupts for A0-A5,D3 and D4
   PCMSK1 |= (1<<PCINT8)|(1<<PCINT9)|(1<<PCINT10)|(1<<PCINT11)|(1<<PCINT12)|(1<<PCINT13);   
   PCMSK2 |= (1<<PCINT19)|(1<<PCINT20); 
   PCICR |= (1<<PCIE2)|(1<<PCIE1);
   //enable global interupts
   sei();
 
+  // initalise stepper libary
   engine.init();
   stepper = engine.stepperConnectToPin(STEP_PIN);
   if (stepper) {
@@ -85,19 +89,14 @@ void setup() {
   PORTD |= (1<<DDD6); // set D6 high to enable stepper and Heater Power
 
   set_speed();
-
-  #if defined(FORWARD)
-    stepper->runForward();
-  #elif defined(BACKWARD)
-    stepper->runBackward();
-  #endif
-
 }
 
 
 
 
 void loop() {
+
+  // read in serial inputs to modify extrusionmultiplyer
   if (Serial.available()) {
     String input = Serial.readStringUntil('\n');
     input.trim();
@@ -106,6 +105,8 @@ void loop() {
       set_speed();
     }
   }
+
+  //print out current state
   Serial.print("Speed: ");
   Serial.println(speed);
   Serial.print("Flow: ");
