@@ -1,10 +1,12 @@
 # how to use
+
+
 ```
 \<path to python instalation\> \<path to cmd_gcode_to_inform\> \<Gcode Path\> \<optional arguments\>
 ```
 
-
-## avalible commands
+to use as a postprocessing script in prusaslicer 
+## avalible argumets
 ```
 -h
 ```
