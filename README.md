@@ -2,7 +2,7 @@
 
 
 ```
-\<path to python instalation\> \<path to cmd_gcode_to_inform\> \<Gcode Path\> \<optional arguments\>
+<path to python instalation> <path to cmd_gcode_to_inform> <Gcode Path> <optional arguments>
 ```
 
 to use as a postprocessing script in prusaslicer 
