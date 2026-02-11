@@ -109,3 +109,76 @@ arc moves are not suportet only linear moves. if enabled sript will terminate wi
 
 
 # arduino code
+
+## Code Parameters
+define the correct values for your setup of STEPS_PER_REVOLUTION and MAX_RPM. Make sure that the MAX_RPM is equal to the parameter in the gcode_to_inform script. ACCEL changes the accelarition off the stepper.
+```
+#define STEPS_PER_REVOLUTION 3200 // steps/mm bei 16 microsteps und 1:1 Übersetzung
+#define ACCEL 5000   // steps/s^2
+#define MAX_RPM 414 // max RPM
+```
+
+The direction off the stepper movment can be changend by definig the keyword FORWARD or BACKWARD.
+```
+#define FORWARD
+```
+or
+```
+#define BACKWARD
+```
+## Arduino mega with board
+Connect the Outputs from the Robot in the following manner. If you ar not using the PCB the digital Pin number is given.
+```
+RoboPin -> Arduino Mega Pin/GPIO/Board Pin
+O1 -> D22/PA0/O1
+O2 -> D23/PA1/O2
+O3 -> D24/PA2/O3
+O4 -> D25/PA3/O4
+O5 -> D26/PA4/O5
+O6 -> D27/PA5/O6
+O7 -> D28/PA6/O7
+O8 -> D29/PA7/O8
+```
+
+connect the pins for the stepper driver
+```
+Arduino Mega Pin/GPIO/Board Pin -> Stepperdriver
+D6/PH3/Step -> Step
+D5/PE3/Dir -> Dir
+D4/PG5/En -> Enable
+```
+
+Connect the heater+ pin to relay wich powers the temperatur controllers. At the end of a print or if the value 255 is send the arduino will cut the power to the componets wich are connnected
+```
+Arduino Mega Pin/GPIO/Board Pin -> Relay
+D3/PE5/Heat+ -> Realy+
+```
+
+##Arduino Nano
+
+Connect the Outputs from the Robot in the following manner. If you ar not using the PCB the digital Pin number is given.
+```
+RoboPin -> Arduino Nano Pin/GPIO
+O1 -> A0/PC0
+O2 -> A1/PC1
+O3 -> A2/PC2
+O4 -> A3/PC3
+O5 -> A4/PC4
+O6 -> A5/PC5
+O7 -> D3/PD3
+O8 -> D4/PD4
+```
+
+connect the pins for the stepper driver
+```
+Arduino Nano Pin/GPIO-> Stepperdriver
+D9/PB1 -> Step
+D8/PB0 -> Dir
+D7/PD7 -> Enable
+```
+
+Connect the heater+ pin to relay wich powers the temperatur controllers. At the end of a print or if the value 255 is send the arduino will cut the power to the componets wich are connnected
+```
+Arduino Nano Pin/GPIO -> Relay
+D6/PD6 -> Realy+
+```
