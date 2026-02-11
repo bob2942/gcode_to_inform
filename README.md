@@ -154,7 +154,7 @@ Arduino Mega Pin/GPIO/Board Pin -> Relay
 D3/PE5/Heat+ -> Realy+
 ```
 
-##Arduino Nano
+## Arduino Nano
 
 Connect the Outputs from the Robot in the following manner. If you ar not using the PCB the digital Pin number is given.
 ```
