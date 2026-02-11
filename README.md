@@ -156,7 +156,7 @@ D3/PE5/Heat+ -> Realy+
 
 ## Arduino Nano
 
-Connect the Outputs from the Robot in the following manner. If you ar not using the PCB the digital Pin number is given.
+Connect the Outputs from the Robot in the following manner.
 ```
 RoboPin -> Arduino Nano Pin/GPIO
 O1 -> A0/PC0
