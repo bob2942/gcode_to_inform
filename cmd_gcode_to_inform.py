@@ -97,7 +97,7 @@ def save_to_inform(path: Path, coords: np.ndarray, settings: Settings, last_pos 
         f.write(f'/JOB\n//NAME {path.stem}\n//POS\n///NPOS {n},0,0,0,0,0\n///TOOL {settings.tool_n}\n///USER {settings.user_n}\n///POSTYPE USER\n///RECTAN\n///RCONF 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n')
         #write positions
         for i,coord in enumerate(coords):
-            # override Rz rotation based on position maby nedet to reach the hole printvolume
+            # override Rz rotation based on position maybe needet to reach the hole printvolume
             # uncomend if needet
             #coord[5] =get_Rz(coord[0],coord[1],coord[3])
 

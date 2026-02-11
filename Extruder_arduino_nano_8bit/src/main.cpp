@@ -31,8 +31,6 @@ inline void set_speed(){
   //Read out pins and store in variable with the positions D4|D3|A5|A4|A3|A2|A1|A0
   speed = (((PIND&((1<<PIND3)|(1<<PIND4)))<<3)|(PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)|(1<<PINC3)|(1<<PINC4)|(1<<PINC5)))); // read A0-A5
   speed ^= 0xFF; // invert values because octocupler inverts the signal
-  speed = (int)speed*flow; // scale speed with flow
-  speed = min(max(speed,0), 255); // limit speed to 0-255
   if(speed == 0){
     stepper->stopMove();      // stop the stepper if speed is 0
     PORTD |= (1<<DDD6);       // set D6 high to enable stepper and Heater Power
@@ -40,6 +38,8 @@ inline void set_speed(){
     stepper->stopMove();      // stop stepper if power off
     PORTD &= ~(1<<DDD6);      // set D6 low to disable stepper and Heater Power
   }else{
+    speed = (int)speed*flow; // scale speed with flow
+    speed = min(max(speed,0), 255); // limit speed to 0-255
     PORTD |= (1<<DDD6);       // set D6 high to enable stepper and Heater Power
     stepper->setSpeedInHz((float)MAX_SPEED*(float)speed/(float)254); // steps/s
     #if defined(FORWARD)
