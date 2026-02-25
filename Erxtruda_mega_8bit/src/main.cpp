@@ -17,11 +17,13 @@
 //#define FORWARD
 #define BACKWARD
 
-#define MAX_MASSFLOW = 50.0
 
 volatile uint8_t speed = 0;
 volatile float set_massflow = 0;
 volatile float flow = 1.0; // extrusionsmultiplikator
+
+uint32_t time_now = 0;
+uint32_t last_time = 0;
 
 //define Stepper
 FastAccelStepperEngine engine = FastAccelStepperEngine();
@@ -77,7 +79,24 @@ void setup() {
   #endif
 }
 
-
 void loop() {
+  time_now = micros();
   set_speed();
+
+  if(time_now-last_time >= 1000000){
+    if (Serial.available()) {
+      String i_s = Serial.readStringUntil('\n');
+      i_s.trim();
+      if (i_s.length() > 0) {
+        flow = i_s.toFloat();
+        set_speed();
+      }
+    }
+    Serial.print("Speed: ");
+    Serial.println(speed);
+    Serial.print("Flow: ");
+    Serial.println(flow);
+    Serial.println("___________");
+    last_time = time_now;
+  }
 }
